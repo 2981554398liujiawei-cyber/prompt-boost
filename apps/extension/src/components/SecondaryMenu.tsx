@@ -6,7 +6,7 @@
  *   子面板：增强模式选择器 / 任务类型选择器 / 自动追问选择器 / 评分详情
  *
  * 交互契约：
- *   - 点击菜单外部关闭（由 BoostButton 的捕获监听处理）。
+ *   - 焦点移出菜单后关闭（由 BoostButton 在 Shadow DOM 内部处理）。
  *   - Esc 关闭（BoostButton 处理）。
  *   - Tab / 方向键 / Enter / Space 键盘导航。
  *   - 深色/浅色由 Shadow DOM :host[data-theme] 驱动。
@@ -14,11 +14,12 @@
  *   - 不改变 ChatGPT 输入区域高度（绝对定位浮层）。
  */
 import { useRef, useEffect, type ReactNode } from "react";
-import type {
-  ClarificationMode,
-  EnhanceLevel,
-  ScoreDimensionKey,
-  TaskType,
+import {
+  EXTENSION_VERSION,
+  type ClarificationMode,
+  type EnhanceLevel,
+  type ScoreDimensionKey,
+  type TaskType,
 } from "@prompt-boost/shared";
 import type { MenuPane, PromptScoreView, TaskTypeDisplay } from "../content/types.js";
 import type { BoostRequestSettings } from "../content/controller.js";
@@ -361,7 +362,9 @@ function RootMenu(props: SecondaryMenuProps): ReactNode {
 
   return (
     <div role="menu" className="pb-menu">
-      <div className="pb-menu-title">Prompt Boost</div>
+      <div className="pb-menu-title">
+        Prompt Boost <span className="pb-menu-version">v{EXTENSION_VERSION}</span>
+      </div>
       <NavRow
         label="增强模式"
         value={enhanceLevelLabel(settings.enhanceLevel)}

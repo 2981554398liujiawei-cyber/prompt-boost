@@ -41,7 +41,7 @@ describe("BoostButton Shadow DOM 菜单点击", () => {
     expect(onMenuClose).not.toHaveBeenCalled();
   });
 
-  it("Shadow DOM 外部点击仍会关闭菜单", () => {
+  it("焦点移到 Shadow DOM 外部时关闭菜单", () => {
     const host = document.createElement("div");
     const outside = document.createElement("button");
     document.body.append(host, outside);
@@ -57,12 +57,16 @@ describe("BoostButton Shadow DOM 菜单点击", () => {
           onOpenMenu: vi.fn(),
           ariaExpanded: true,
           menuOpen: true,
-          menu: createElement("div", null, "菜单"),
+          menu: createElement("button", { type: "button" }, "菜单"),
           onMenuClose,
         }),
       );
     });
-    act(() => outside.click());
+    const menuButton = shadow.querySelector<HTMLButtonElement>(".pb-root > button:last-child");
+    act(() => {
+      menuButton?.focus();
+      outside.focus();
+    });
     expect(onMenuClose).toHaveBeenCalledTimes(1);
   });
 });

@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Prompt Boost",
   "description": "在 ChatGPT 输入框旁一键增强你的 Prompt：分析、补全、润色，写回输入框（BYOK，本地服务托管密钥）。",
-  "version": "0.1.0",
-  "version_name": "0.1.0 (MVP)",
+  "version": "0.1.1",
+  "version_name": "0.1.1 (interaction fix)",
   "minimum_chrome_version": "120",
   "permissions": ["storage"],
   "host_permissions": [

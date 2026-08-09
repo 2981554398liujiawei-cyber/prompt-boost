@@ -92,6 +92,12 @@ export const boostStyles = `
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
+.pb-menu-version {
+  float: right;
+  text-transform: none;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
 .pb-menu-item {
   display: block;
   width: 100%;

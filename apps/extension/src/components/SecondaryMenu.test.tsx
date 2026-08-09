@@ -56,6 +56,7 @@ describe("SecondaryMenu 结构", () => {
   it("根菜单包含四组 + API 设置", () => {
     renderMenu(makeProps({ pane: "root" }));
     const buttons = Array.from(container.querySelectorAll("button")).map((b) => b.textContent ?? "");
+    expect(container.textContent ?? "").toContain("v0.1.1");
     expect(buttons.join("|")).toContain("增强模式");
     expect(buttons.join("|")).toContain("任务类型");
     expect(buttons.join("|")).toContain("自动追问");

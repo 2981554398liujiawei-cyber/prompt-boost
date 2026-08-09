@@ -92,4 +92,4 @@ export const SCORE_DIMENSION_KEYS = [
 export type ScoreDimensionKey = (typeof SCORE_DIMENSION_KEYS)[number];
 
 /** 扩展版本号（与 manifest 保持一致，避免引用 JSON 造成构建耦合）。 */
-export const EXTENSION_VERSION = "0.1.0";
+export const EXTENSION_VERSION = "0.1.1";

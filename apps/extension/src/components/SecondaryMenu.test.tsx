@@ -55,8 +55,10 @@ describe("SecondaryMenu 结构", () => {
 
   it("根菜单包含四组 + API 设置", () => {
     renderMenu(makeProps({ pane: "root" }));
-    const buttons = Array.from(container.querySelectorAll("button")).map((b) => b.textContent ?? "");
-    expect(container.textContent ?? "").toContain("v0.1.1");
+    const buttons = Array.from(container.querySelectorAll("button")).map(
+      (b) => b.textContent ?? "",
+    );
+    expect(container.textContent ?? "").toContain("v0.1.2");
     expect(buttons.join("|")).toContain("增强模式");
     expect(buttons.join("|")).toContain("任务类型");
     expect(buttons.join("|")).toContain("自动追问");
@@ -130,8 +132,8 @@ describe("SecondaryMenu 子面板", () => {
   it("点击增强模式选项触发 onSetSetting", () => {
     const onSetSetting = vi.fn();
     renderMenu(makeProps({ pane: "enhanceLevel", onSetSetting }));
-    const expert = Array.from(container.querySelectorAll("button")).find(
-      (b) => (b.textContent ?? "").includes("专家"),
+    const expert = Array.from(container.querySelectorAll("button")).find((b) =>
+      (b.textContent ?? "").includes("专家"),
     );
     act(() => expert?.click());
     expect(onSetSetting).toHaveBeenCalledWith("enhanceLevel", "expert");
@@ -140,7 +142,19 @@ describe("SecondaryMenu 子面板", () => {
   it("任务类型面板包含 auto + 10 类", () => {
     renderMenu(makeProps({ pane: "taskType" }));
     const text = container.textContent ?? "";
-    for (const label of ["自动识别", "写作", "编程", "商业", "分析", "研究", "学习", "翻译", "规划", "创意", "通用"]) {
+    for (const label of [
+      "自动识别",
+      "写作",
+      "编程",
+      "商业",
+      "分析",
+      "研究",
+      "学习",
+      "翻译",
+      "规划",
+      "创意",
+      "通用",
+    ]) {
       expect(text).toContain(label);
     }
   });
@@ -162,8 +176,14 @@ describe("SecondaryMenu 子面板", () => {
           missing: ["目标用户", "时间周期"],
           suggestions: ["补充背景"],
           dimensions: {
-            objective: 80, context: 40, audience: 20, outputFormat: 60,
-            constraints: 30, role: 50, materials: 10, actionability: 70,
+            objective: 80,
+            context: 40,
+            audience: 20,
+            outputFormat: 60,
+            constraints: 30,
+            role: 50,
+            materials: 10,
+            actionability: 70,
           },
           scoreSource: "llm",
           scoredOriginalText: "x",
@@ -244,27 +264,46 @@ describe("SecondaryMenu 子面板", () => {
   });
 });
 
-describe("SecondaryMenu 键盘与返回", () => {
-  it("返回按钮触发 onSetPane(root)", () => {
+describe("SecondaryMenu 悬浮级联与键盘", () => {
+  it("悬浮增强模式请求打开右侧子菜单", () => {
     const onSetPane = vi.fn();
-    renderMenu(makeProps({ pane: "enhanceLevel", onSetPane }));
-    const back = Array.from(container.querySelectorAll("button")).find((b) => (b.textContent ?? "").includes("返回"));
-    act(() => back?.click());
-    expect(onSetPane).toHaveBeenCalledWith("root");
+    renderMenu(makeProps({ pane: "root", onSetPane }));
+    const row = Array.from(container.querySelectorAll("button")).find((b) =>
+      (b.textContent ?? "").includes("增强模式"),
+    );
+
+    act(() => row?.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })));
+
+    expect(onSetPane).toHaveBeenCalledWith("enhanceLevel");
+  });
+
+  it("子菜单打开时根菜单仍保留，并标记当前行展开", () => {
+    renderMenu(makeProps({ pane: "enhanceLevel" }));
+
+    expect(container.querySelector(".pb-root-menu")).not.toBeNull();
+    expect(container.querySelector(".pb-submenu")).not.toBeNull();
+    expect(container.querySelectorAll('[role="menu"]')).toHaveLength(2);
+    const row = Array.from(container.querySelectorAll(".pb-root-menu button")).find((b) =>
+      (b.textContent ?? "").includes("增强模式"),
+    );
+    expect(row?.getAttribute("aria-expanded")).toBe("true");
+    expect(container.textContent ?? "").not.toContain("返回");
   });
 
   it("root 下点击 API 设置触发 onOpenSettings", () => {
     const onOpenSettings = vi.fn();
     renderMenu(makeProps({ pane: "root", onOpenSettings }));
-    const api = Array.from(container.querySelectorAll("button")).find((b) => (b.textContent ?? "").includes("API 设置"));
+    const api = Array.from(container.querySelectorAll("button")).find((b) =>
+      (b.textContent ?? "").includes("API 设置"),
+    );
     act(() => api?.click());
     expect(onOpenSettings).toHaveBeenCalled();
   });
 
   it("菜单项使用 role=menuitem 与 aria-checked", () => {
     renderMenu(makeProps({ pane: "taskType" }));
-    const auto = Array.from(container.querySelectorAll('button[role="menuitemradio"]')).find(
-      (b) => (b.textContent ?? "").includes("自动识别"),
+    const auto = Array.from(container.querySelectorAll('button[role="menuitemradio"]')).find((b) =>
+      (b.textContent ?? "").includes("自动识别"),
     );
     expect(auto?.getAttribute("aria-checked")).toBe("true");
   });

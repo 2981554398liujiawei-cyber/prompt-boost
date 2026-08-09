@@ -15,6 +15,7 @@ import { BoostHost } from "../components/BoostHost.js";
 import { boostStyles } from "../styles/boost.css.js";
 import { BoostController, type BoostUiPayload } from "./controller.js";
 import { getExtensionSettings, saveExtensionSettings } from "../background/settings.js";
+import { mapBoostSettingsPatch } from "./settings-mapping.js";
 
 const BOOST_ROOT_ID = "prompt-boost-root";
 
@@ -84,13 +85,7 @@ function bootstrap(): void {
         };
       },
       saveSettings: async (patch) => {
-        const s = await getExtensionSettings();
-        const merged = { ...s, ...patch };
-        await saveExtensionSettings({
-          defaultTaskType: merged.defaultTaskType,
-          defaultEnhanceLevel: merged.defaultEnhanceLevel,
-          defaultClarificationMode: merged.defaultClarificationMode,
-        });
+        await saveExtensionSettings(mapBoostSettingsPatch(patch));
       },
       onOpenSettings: () => {
         void chrome.runtime.openOptionsPage();

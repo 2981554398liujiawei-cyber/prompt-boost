@@ -44,7 +44,11 @@ export const TASK_TYPE_OPTIONS: Array<{ value: TaskType | "auto"; label: string 
   { value: "general", label: "通用" },
 ];
 
-export const CLARIFICATION_OPTIONS: Array<{ value: ClarificationMode; label: string; hint: string }> = [
+export const CLARIFICATION_OPTIONS: Array<{
+  value: ClarificationMode;
+  label: string;
+  hint: string;
+}> = [
   { value: "off", label: "关闭", hint: "不追问，直接增强" },
   { value: "smart", label: "智能", hint: "信息不足时追问关键问题" },
   { value: "always", label: "总是", hint: "深度/专家模式允许提出最多 3 个问题" },
@@ -58,7 +62,10 @@ export interface SecondaryMenuProps {
   taskTypeDisplay: TaskTypeDisplay;
   detectedTaskType?: string;
   onSetPane: (pane: MenuPane) => void;
-  onSetSetting: <K extends keyof BoostRequestSettings>(field: K, value: BoostRequestSettings[K]) => void;
+  onSetSetting: <K extends keyof BoostRequestSettings>(
+    field: K,
+    value: BoostRequestSettings[K],
+  ) => void;
   onOpenSettings: () => void;
   /** 主动重新评分（离线启发式 /v1/analyze；用于过期评分刷新）。 */
   onRequestScore?: () => void;
@@ -124,18 +131,23 @@ function NavRow({
   label,
   value,
   stale,
+  active,
   onOpen,
 }: {
   label: string;
   value: ReactNode;
   stale?: boolean;
+  active?: boolean;
   onOpen: () => void;
 }): ReactNode {
   return (
     <button
       type="button"
       role="menuitem"
-      className="pb-menu-item pb-nav-row"
+      aria-haspopup="menu"
+      aria-expanded={active}
+      className={`pb-menu-item pb-nav-row${active ? " pb-nav-active" : ""}`}
+      onMouseEnter={onOpen}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -158,29 +170,10 @@ function NavRow({
   );
 }
 
-/** 返回根菜单按钮。 */
-function BackRow({ onBack }: { onBack: () => void }): ReactNode {
-  return (
-    <button
-      type="button"
-      role="menuitem"
-      className="pb-menu-item pb-back-row"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onBack();
-      }}
-    >
-      ‹ 返回
-    </button>
-  );
-}
-
 function EnhanceLevelPane({
   settings,
   onSetSetting,
-  onBack,
-}: Pick<SecondaryMenuProps, "settings" | "onSetSetting"> & { onBack: () => void }): ReactNode {
+}: Pick<SecondaryMenuProps, "settings" | "onSetSetting">): ReactNode {
   return (
     <div role="menu" className="pb-menu pb-submenu">
       <div className="pb-menu-title">增强模式</div>
@@ -194,7 +187,6 @@ function EnhanceLevelPane({
           <div className="pb-radio-hint">{o.hint}</div>
         </div>
       ))}
-      <BackRow onBack={onBack} />
     </div>
   );
 }
@@ -202,8 +194,7 @@ function EnhanceLevelPane({
 function TaskTypePane({
   settings,
   onSetSetting,
-  onBack,
-}: Pick<SecondaryMenuProps, "settings" | "onSetSetting"> & { onBack: () => void }): ReactNode {
+}: Pick<SecondaryMenuProps, "settings" | "onSetSetting">): ReactNode {
   return (
     <div role="menu" className="pb-menu pb-submenu">
       <div className="pb-menu-title">任务类型</div>
@@ -215,7 +206,6 @@ function TaskTypePane({
           onSelect={() => onSetSetting("taskType", o.value)}
         />
       ))}
-      <BackRow onBack={onBack} />
     </div>
   );
 }
@@ -223,8 +213,7 @@ function TaskTypePane({
 function ClarificationPane({
   settings,
   onSetSetting,
-  onBack,
-}: Pick<SecondaryMenuProps, "settings" | "onSetSetting"> & { onBack: () => void }): ReactNode {
+}: Pick<SecondaryMenuProps, "settings" | "onSetSetting">): ReactNode {
   return (
     <div role="menu" className="pb-menu pb-submenu">
       <div className="pb-menu-title">自动追问</div>
@@ -238,7 +227,6 @@ function ClarificationPane({
           <div className="pb-radio-hint">{o.hint}</div>
         </div>
       ))}
-      <BackRow onBack={onBack} />
     </div>
   );
 }
@@ -247,9 +235,8 @@ function ClarificationPane({
 function ScorePane({
   score,
   scoreStale: stale,
-  onBack,
   onRequestScore,
-}: Pick<SecondaryMenuProps, "score" | "scoreStale" | "onRequestScore"> & { onBack: () => void }): ReactNode {
+}: Pick<SecondaryMenuProps, "score" | "scoreStale" | "onRequestScore">): ReactNode {
   const dims = score?.dimensions ?? {};
   const dimLabels: Record<ScoreDimensionKey, string> = {
     objective: "目标明确度",
@@ -297,7 +284,6 @@ function ScorePane({
             重新评分
           </button>
         )}
-        <BackRow onBack={onBack} />
       </div>
     );
   }
@@ -342,7 +328,6 @@ function ScorePane({
       <div className="pb-score-source">
         评分来源：{score ? scoreSourceLabel(score.scoreSource) : "本地估算"}
       </div>
-      <BackRow onBack={onBack} />
     </div>
   );
 }
@@ -361,32 +346,45 @@ function RootMenu(props: SecondaryMenuProps): ReactNode {
   const scoreValue = score ? (scoreStale ? "已过期" : `${score.total}/100`) : "增强后查看";
 
   return (
-    <div role="menu" className="pb-menu">
+    <div role="menu" className="pb-menu pb-root-menu">
       <div className="pb-menu-title">
         Prompt Boost <span className="pb-menu-version">v{EXTENSION_VERSION}</span>
       </div>
       <NavRow
         label="增强模式"
         value={enhanceLevelLabel(settings.enhanceLevel)}
+        active={props.pane === "enhanceLevel"}
         onOpen={() => onSetPane("enhanceLevel")}
       />
       <NavRow
         label="任务类型"
         value={taskValue}
-        stale={taskTypeDisplay.mode === "auto" && !taskTypeDisplay.detected && Boolean((props as { detectedTaskType?: string }).detectedTaskType)}
+        active={props.pane === "taskType"}
+        stale={
+          taskTypeDisplay.mode === "auto" &&
+          !taskTypeDisplay.detected &&
+          Boolean((props as { detectedTaskType?: string }).detectedTaskType)
+        }
         onOpen={() => onSetPane("taskType")}
       />
       <NavRow
         label="自动追问"
         value={clarificationLabel(settings.clarificationMode)}
+        active={props.pane === "clarification"}
         onOpen={() => onSetPane("clarification")}
       />
-      <NavRow label="Prompt 评分" value={scoreValue} onOpen={() => onSetPane("score")} />
+      <NavRow
+        label="Prompt 评分"
+        value={scoreValue}
+        active={props.pane === "score"}
+        onOpen={() => onSetPane("score")}
+      />
       <div className="pb-menu-sep" />
       <button
         type="button"
         role="menuitem"
         className="pb-menu-item pb-settings-row"
+        onMouseEnter={() => onSetPane("root")}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -400,44 +398,40 @@ function RootMenu(props: SecondaryMenuProps): ReactNode {
 }
 
 export function SecondaryMenu(props: SecondaryMenuProps): ReactNode {
-  const { pane, onSetPane } = props;
+  const { pane } = props;
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // 打开时：焦点放到菜单第一个可聚焦元素；Esc / Tab 移出时关闭。
+  // 首次打开根菜单时聚焦第一项；子面板切换不抢走鼠标焦点。
   useEffect(() => {
-    if (pane === null) return;
-    const el = rootRef.current?.querySelector<HTMLElement>("button");
+    if (pane !== "root") return;
+    const el = rootRef.current?.querySelector<HTMLElement>(".pb-root-menu button");
     el?.focus();
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        onSetPane(null);
-      }
-    };
-    document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  }, [pane, onSetPane]);
+  }, [pane]);
 
   if (pane === null) return null;
 
   return (
-    <div ref={rootRef} className="pb-menu-wrap">
-      {pane === "root" && <RootMenu {...props} />}
+    <div
+      ref={rootRef}
+      className="pb-menu-wrap"
+      onMouseLeave={() => {
+        if (pane !== "root") props.onSetPane("root");
+      }}
+    >
+      <RootMenu {...props} />
       {pane === "enhanceLevel" && (
-        <EnhanceLevelPane settings={props.settings} onSetSetting={props.onSetSetting} onBack={() => onSetPane("root")} />
+        <EnhanceLevelPane settings={props.settings} onSetSetting={props.onSetSetting} />
       )}
       {pane === "taskType" && (
-        <TaskTypePane settings={props.settings} onSetSetting={props.onSetSetting} onBack={() => onSetPane("root")} />
+        <TaskTypePane settings={props.settings} onSetSetting={props.onSetSetting} />
       )}
       {pane === "clarification" && (
-        <ClarificationPane settings={props.settings} onSetSetting={props.onSetSetting} onBack={() => onSetPane("root")} />
+        <ClarificationPane settings={props.settings} onSetSetting={props.onSetSetting} />
       )}
       {pane === "score" && (
         <ScorePane
           score={props.score}
           scoreStale={props.scoreStale}
-          onBack={() => onSetPane("root")}
           onRequestScore={props.onRequestScore}
         />
       )}

@@ -1,7 +1,8 @@
 /**
  * Prompt Engine 管线编排（阶段 5 核心）。
  *
- * 一次 LLM 调用完成：分类 + 评分 + 追问判断 + 增强。
+ * deep / expert 一次 LLM 调用完成分类、评分、追问判断与增强；quick 使用
+ * 一次更短的纯文本调用，本地补齐分类和评分，优先降低首字与总耗时。
  *
  * 流程：
  *   1. 构建 system（元提示）与 user（原文 + 任务定义 + 强度定义 + 场景补强 + 追问答案）。
@@ -244,6 +245,13 @@ export async function runEnhance(
     outputLanguage: request.outputLanguage,
   };
 
+  // quick 的产品承诺是尽快完成轻量整理。旧实现虽然提示词写着 quick，仍要求
+  // 模型生成完整 JSON、8 维评分、缺失项和追问分析，结构异常时还会二次请求。
+  // 快速路径只生成增强文本，分类与评分由本地启发式补齐，始终最多一次上游调用。
+  if (level === "quick") {
+    return runQuickEnhance(request, input, deps);
+  }
+
   const systemPrompt = buildSystemPrompt();
   const userPrompt = buildUserPrompt(input);
 
@@ -304,6 +312,61 @@ export async function runEnhance(
     if (err instanceof ProviderError && err.code === "RESPONSE_INVALID") {
       log.warn(`enhance: structured parse failed (${err.safeMessage}); text fallback`);
       return await textFallback(request, input, deps);
+    }
+    throw err;
+  }
+}
+
+/** quick 轻量路径：单次纯文本生成，不请求模型输出评分/分析 JSON。 */
+async function runQuickEnhance(
+  request: EnhancePromptRequest,
+  input: StrategyInput,
+  deps: EnhancePipelineDeps,
+): Promise<EnhanceOutcome> {
+  const log = deps.logger ?? createLogger(false);
+  try {
+    const result = await deps.provider.enhancePrompt(
+      {
+        systemPrompt: buildPlainFallbackSystemPrompt(),
+        userPrompt: buildPlainFallbackUserPrompt(input),
+        originalText: request.originalText,
+        taskType: input.taskType,
+        enhanceLevel: input.enhanceLevel,
+        clarificationMode: "off",
+        outputLanguage: input.outputLanguage,
+      },
+      { signal: deps.signal, jsonMode: false },
+    );
+    const enhanced = result.enhancedText.trim().slice(0, MAX_INPUT_LENGTH);
+    if (!looksLikeEnhanceEnvelope(enhanced) && isAcceptable(enhanced, request.originalText)) {
+      const heuristic = heuristicScore(request.originalText);
+      const classified = classifyTaskType(request.originalText);
+      log.debug(`enhance: quick text ok (provider=${deps.providerLabel})`);
+      return {
+        enhancedText: enhanced,
+        analysis: toAnalysis(
+          classified.taskType,
+          heuristic.dimensions,
+          heuristic.missing,
+          [],
+          heuristic.suggestions,
+          classified.confidence,
+          "heuristic_fallback",
+        ),
+        assumptions: [],
+        fallback: null,
+        provider: deps.providerLabel.slice(0, 128),
+        model: deps.provider.config.model,
+      };
+    }
+    log.warn("enhance: quick text invalid; passthrough original");
+    return passthrough(request, deps);
+  } catch (err) {
+    // 空/无效文本允许安全原样返回；网络、鉴权、限流等 Provider 错误仍上抛，
+    // 避免把服务故障伪装成一次成功增强。
+    if (err instanceof ProviderError && err.code === "RESPONSE_INVALID") {
+      log.warn(`enhance: quick text invalid (${err.safeMessage}); passthrough original`);
+      return passthrough(request, deps);
     }
     throw err;
   }

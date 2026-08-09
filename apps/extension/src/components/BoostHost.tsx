@@ -1,6 +1,6 @@
 /**
  * BoostHost：挂在 Shadow DOM 里的 React 根组件。
- * 负责任务按钮、二级菜单、浮层（错误、评分、追问、冲突、撤销 toast）的渲染。
+ * 负责任务按钮、二级菜单、浮层（错误、追问、冲突、撤销 toast）的渲染。
  * 真正的业务由 BoostController（content/controller.ts）驱动。
  */
 import { useEffect, useState } from "react";
@@ -199,37 +199,6 @@ export function BoostHost(props: BoostHostProps) {
                 回答并增强
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 评分面板 */}
-      {score && state !== "clarifying" && state !== "conflict" && (
-        <div className="pb-overlay-backdrop">
-          <div className="pb-panel">
-            <button className="pb-close" onClick={onDismiss}>
-              ✕
-            </button>
-            <h3>Prompt 评分：{score.total}/100</h3>
-            <div className="pb-score-bar">
-              <div className="pb-score-fill" style={{ width: `${score.total}%` }} />
-            </div>
-            <div className="pb-dim-title">需要补充：</div>
-            {score.missing.length > 0 ? (
-              score.missing.map((m) => (
-                <p key={m} className="pb-missing">
-                  - {m}
-                </p>
-              ))
-            ) : (
-              <p className="pb-missing">无缺失项，结构较完整。</p>
-            )}
-            {score.suggestions.length > 0 && (
-              <>
-                <div className="pb-dim-title">优化建议：</div>
-                <p className="pb-hint">{score.suggestions.join("；")}</p>
-              </>
-            )}
           </div>
         </div>
       )}

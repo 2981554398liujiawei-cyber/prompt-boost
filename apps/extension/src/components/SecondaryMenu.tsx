@@ -181,7 +181,7 @@ function EnhanceLevelPane({
   onBack,
 }: Pick<SecondaryMenuProps, "settings" | "onSetSetting"> & { onBack: () => void }): ReactNode {
   return (
-    <div role="menu" className="pb-submenu">
+    <div role="menu" className="pb-menu pb-submenu">
       <div className="pb-menu-title">增强模式</div>
       {ENHANCE_LEVEL_OPTIONS.map((o) => (
         <div key={o.value}>
@@ -204,7 +204,7 @@ function TaskTypePane({
   onBack,
 }: Pick<SecondaryMenuProps, "settings" | "onSetSetting"> & { onBack: () => void }): ReactNode {
   return (
-    <div role="menu" className="pb-submenu">
+    <div role="menu" className="pb-menu pb-submenu">
       <div className="pb-menu-title">任务类型</div>
       {TASK_TYPE_OPTIONS.map((o) => (
         <RadioRow
@@ -225,7 +225,7 @@ function ClarificationPane({
   onBack,
 }: Pick<SecondaryMenuProps, "settings" | "onSetSetting"> & { onBack: () => void }): ReactNode {
   return (
-    <div role="menu" className="pb-submenu">
+    <div role="menu" className="pb-menu pb-submenu">
       <div className="pb-menu-title">自动追问</div>
       {CLARIFICATION_OPTIONS.map((o) => (
         <div key={o.value}>
@@ -273,7 +273,7 @@ function ScorePane({
 
   if (stale) {
     return (
-      <div role="menu" className="pb-submenu">
+      <div role="menu" className="pb-menu pb-submenu">
         <div className="pb-menu-title">Prompt 评分</div>
         <div className="pb-score-stale">
           当前评分来自上一次 Boost 前的 Prompt。
@@ -302,7 +302,7 @@ function ScorePane({
   }
 
   return (
-    <div role="menu" className="pb-submenu pb-score-pane">
+    <div role="menu" className="pb-menu pb-submenu pb-score-pane">
       <div className="pb-menu-title">Prompt 评分</div>
       <div className="pb-score-total">
         {score?.total ?? 0}

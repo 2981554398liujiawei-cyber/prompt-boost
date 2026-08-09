@@ -119,6 +119,7 @@ describe("SecondaryMenu 子面板", () => {
   it("增强模式面板：quick/deep/expert 单选", () => {
     renderMenu(makeProps({ pane: "enhanceLevel" }));
     const text = container.textContent ?? "";
+    expect(container.querySelector(".pb-submenu")?.classList.contains("pb-menu")).toBe(true);
     expect(text).toContain("快速");
     expect(text).toContain("深度");
     expect(text).toContain("专家");

@@ -133,4 +133,26 @@ describe("BoostHost 追问面板（Stage 7）", () => {
     renderHost(makeProps({ state: "idle", canBoost: true }));
     expect(container.textContent ?? "").not.toContain("回答并增强");
   });
+
+  it("增强完成后不自动弹出评分层，评分仍可从菜单主动查看", () => {
+    renderHost(
+      makeProps({
+        state: "success",
+        canBoost: true,
+        clarifications: [],
+        menuPane: "score",
+        score: {
+          total: 72,
+          missing: ["目标受众"],
+          suggestions: ["补充受众"],
+          dimensions: {},
+          scoreSource: "heuristic_fallback",
+          scoredOriginalText: "原文",
+        },
+      }),
+    );
+
+    expect(container.querySelector(".pb-overlay-backdrop")).toBeNull();
+    expect(container.querySelector(".pb-score-pane")?.textContent ?? "").toContain("72 / 100");
+  });
 });

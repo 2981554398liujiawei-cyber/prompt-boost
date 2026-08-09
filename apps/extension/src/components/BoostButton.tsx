@@ -57,7 +57,15 @@ export function BoostButton({
   useEffect(() => {
     if (!menuOpen) return;
     const onDocClick = (e: globalThis.MouseEvent): void => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+      const wrap = wrapRef.current;
+      if (!wrap) return;
+
+      // 事件穿过 Shadow DOM 边界后，document 看到的 target 会被重定向为
+      // shadow host，wrap.contains(target) 因而恒为 false。使用 composedPath
+      // 才能识别点击实际发生在菜单内部，避免捕获阶段先关闭菜单、吞掉子菜单点击。
+      const path = typeof e.composedPath === "function" ? e.composedPath() : [];
+      const targetInside = e.target instanceof Node && wrap.contains(e.target);
+      if (!path.includes(wrap) && !targetInside) {
         onMenuClose();
       }
     };

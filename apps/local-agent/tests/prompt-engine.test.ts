@@ -145,6 +145,27 @@ describe("quick / deep / expert 三档差异", () => {
     expect(p.calls).toHaveLength(1);
     expect(p2.calls).toHaveLength(1);
   });
+
+  it("quick 走单次纯文本轻量路径，评分与分类在本地补齐", async () => {
+    const p = mockProvider([
+      okEnhance({
+        enhancedText: "请帮我写一个产品推广方案，明确目标受众与主要推广渠道。",
+        analysis: null,
+        assumptions: [],
+      }),
+    ]);
+    const out = await runEnhance(
+      { ...REQUEST, enhanceLevel: "quick" },
+      { provider: p, providerLabel: "openai/mock" },
+    );
+
+    expect(p.calls).toHaveLength(1);
+    expect(p.options[0]).toMatchObject({ jsonMode: false });
+    expect(p.calls[0].clarificationMode).toBe("off");
+    expect(p.calls[0].systemPrompt).toContain("只输出增强后的 Prompt 纯文本");
+    expect(out.analysis?.scoreSource).toBe("heuristic_fallback");
+    expect(out.fallback).toBeNull();
+  });
 });
 
 describe("单次 LLM 调用完成分类+评分+追问+增强", () => {

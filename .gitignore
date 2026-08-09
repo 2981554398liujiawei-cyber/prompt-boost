@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Vite cache
+.vite/
+*.vite
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Runtime data
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.pid
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.claude/settings.local.json
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Local agent data dir
+apps/local-agent/data/
+
+# Local smoke/measurement output
+/enh1.json

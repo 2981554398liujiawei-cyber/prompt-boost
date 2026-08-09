@@ -1,0 +1,48 @@
+{
+  "name": "@prompt-boost/local-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Prompt Boost — local agent service (127.0.0.1:8787)",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "dev": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "token:show": "node dist/cli/token.js show",
+    "token:rotate": "node dist/cli/token.js rotate",
+    "vault:audit": "node dist/cli/vault.js audit",
+    "vault:cleanup": "node dist/cli/vault.js cleanup",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src tests",
+    "lint:fix": "eslint src tests --fix",
+    "format": "prettier --write src tests",
+    "test": "vitest --run",
+    "test:run": "vitest --run",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@prompt-boost/prompt-core": "workspace:*",
+    "@prompt-boost/shared": "workspace:*",
+    "better-sqlite3": "^12.11.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "undici": "^8.10.0",
+    "zod": "^3.24.1"
+  },
+  "optionalDependencies": {
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.5",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  }
+}
